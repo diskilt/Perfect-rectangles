@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfect Square</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: rgba(10, 10, 10, 0.95);
+            --surface-dark: rgba(20, 20, 20, 0.8);
+            --text-dark: rgba(255, 255, 255, 0.9);
+            --accent-dark: rgba(255, 255, 255, 0.1);
+            --border-dark: rgba(255, 255, 255, 0.05);
+            --primary: #3742fa;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --danger: #ff4757;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            cursor: crosshair;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,%3Csvg width="60" height="60" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3Cpattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"%3E%3Cpath d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100%25" height="100%25" fill="url(%23grid)"/%3E%3C/svg%3E');
+            pointer-events: none;
+            opacity: 1;
+            z-index: -1;
+        }
+
+        .nav-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px) scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .social-link svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover svg {
+            transform: scale(1.1);
+        }
+
+        .social-link.email::before,
+        .social-link.discord::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            letter-spacing: 0.05em;
+            font-weight: 300;
+        }
+
+        .social-link:hover::before {
+            opacity: 1;
+            bottom: -45px;
+        }
+
+        .nav-spacer {
+            flex: 1;
+        }
+
+        .source-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            font-weight: 300;
+        }
+
+        .source-link:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .source-link svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .header {
+            position: absolute;
+            top: 100px;
+            text-align: center;
+            animation: fadeInDown 0.8s ease 0.2s backwards;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 100;
+            letter-spacing: 0.3em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            opacity: 0.5;
+            letter-spacing: 0.1em;
+            font-size: 0.85rem;
+            font-weight: 300;
+        }
+
+        .score-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .percentage {
+            font-size: 5rem;
+            font-weight: 100;
+            letter-spacing: 0.05em;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .percentage.show {
+            opacity: 1;
+            animation: pulse 0.8s ease;
+        }
+
+        .percentage.perfect {
+            color: var(--success);
+            text-shadow: 0 0 30px var(--success);
+        }
+
+        .percentage.good {
+            color: var(--warning);
+        }
+
+        .percentage.bad {
+            color: var(--danger);
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1rem;
+            font-weight: 200;
+            letter-spacing: 0.15em;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .message.show {
+            opacity: 0.7;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #historyCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        #drawCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            cursor: crosshair;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 60px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .instructions p {
+            font-size: 0.9rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+            margin-bottom: 15px;
+        }
+
+        .try-again-btn {
+            padding: 12px 30px;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .try-again-btn.show {
+            opacity: 1;
+            pointer-events: all;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .try-again-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .perfect-square {
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 1;
+            fill: none;
+            stroke-dasharray: 5, 5;
+            animation: rotate 20s linear infinite;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .perfect-square.show {
+            opacity: 1;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes rotate {
+            from { stroke-dashoffset: 0; }
+            to { stroke-dashoffset: 20; }
+        }
+
+        .stats {
+            position: absolute;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .stats.show {
+            opacity: 1;
+            animation: fadeInDown 0.5s ease;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 200;
+            letter-spacing: 0.05em;
+        }
+
+        .drawing-indicator {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.2s ease;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .drawing-indicator.active {
+            opacity: 1;
+            animation: glow 0.5s ease infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+            to { box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+            }
+
+            .social-link {
+                width: 36px;
+                height: 36px;
+            }
+
+            .social-link svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .source-link {
+                padding: 8px 16px;
+                font-size: 0.8rem;
+            }
+
+            .source-link span {
+                display: none;
+            }
+
+            .header {
+                top: 80px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                top: 160px;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="social-links">
+            <a href="https://diskiltmusic.wasmer.app" target="_blank" class="social-link" title="Music">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+            </a>
+
+
+            <a href="https://linktr.ee/Diskilt_" target="_blank" class="social-link" title="Linktree">
+ LKT
+            </a>
+
+
+        <div class="nav-spacer"></div>
+
+        <a href="https://github.com/diskilt/Perfect-rectangles" target="_blank" class="source-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span>Source Code</span>
+        </a>
+    </nav>
+
+    <div class="header">
+        <h1>Perfect Square</h1>
+        <p>Draw a perfect square</p>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="historyCanvas"></canvas>
+        <canvas id="drawCanvas"></canvas>
+        <svg id="svgOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;">
+            <rect class="perfect-square" id="perfectSquare"></rect>
+        </svg>
+    </div>
+
+    <div class="score-display">
+        <div class="percentage" id="percentage">0.00%</div>
+        <div class="message" id="message"></div>
+    </div>
+
+    <div class="stats" id="stats">
+        <div class="stat-item">
+            <div class="stat-label">Attempts</div>
+            <div class="stat-value" id="attempts">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Best Score</div>
+            <div class="stat-value" id="bestScore">0.00%</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Average</div>
+            <div class="stat-value" id="avgScore">0.00%</div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <p id="instructionText">Click and drag to draw a square</p>
+        <button class="try-again-btn" id="tryAgainBtn">Try Again</button>
+    </div>
+
+    <div class="drawing-indicator" id="drawingIndicator"></div>
+
+    <script>
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const historyCanvas = document.getElementById('historyCanvas');
+        const historyCtx = historyCanvas.getContext('2d');
+        const percentage = document.getElementById('percentage');
+        const message = document.getElementById('message');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const instructionText = document.getElementById('instructionText');
+        const perfectSquare = document.getElementById('perfectSquare');
+        const stats = document.getElementById('stats');
+        const attemptsEl = document.getElementById('attempts');
+        const bestScoreEl = document.getElementById('bestScore');
+        const avgScoreEl = document.getElementById('avgScore');
+        const drawingIndicator = document.getElementById('drawingIndicator');
+
+        let isDrawing = false;
+        let points = [];
+        let attempts = parseInt(localStorage.getItem('squareAttempts') || '0');
+        let bestScore = parseFloat(localStorage.getItem('squareBestScore') || '0');
+        let totalScore = parseFloat(localStorage.getItem('squareTotalScore') || '0');
+        let hasDrawn = false;
+        let previousDrawing = null;
+        let veryOldDrawing = null;
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const tooltip = event.target.closest('.social-link').getAttribute('data-tooltip');
+                const originalTooltip = event.target.closest('.social-link').getAttribute('data-tooltip');
+                event.target.closest('.social-link').setAttribute('data-tooltip', 'Copied!');
+                setTimeout(() => {
+                    event.target.closest('.social-link').setAttribute('data-tooltip', originalTooltip);
+                }, 2000);
+            });
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            historyCanvas.width = window.innerWidth;
+            historyCanvas.height = window.innerHeight;
+            redrawHistory();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function updateStats() {
+            attemptsEl.textContent = attempts;
+            bestScoreEl.textContent = bestScore.toFixed(2) + '%';
+            const avg = attempts > 0 ? (totalScore / attempts).toFixed(2) : '0.00';
+            avgScoreEl.textContent = avg + '%';
+        }
+
+        updateStats();
+
+        function saveCurrentDrawing() {
+            if (points.length > 0) {
+                veryOldDrawing = previousDrawing;
+                previousDrawing = [...points];
+                redrawHistory();
+            }
+        }
+
+        function redrawHistory() {
+            historyCtx.clearRect(0, 0, historyCanvas.width, historyCanvas.height);
+            
+            if (veryOldDrawing && veryOldDrawing.length > 0) {
+                drawPath(historyCtx, veryOldDrawing, 'rgba(128, 128, 128, 0.1)', 1);
+            }
+            
+            if (previousDrawing && previousDrawing.length > 0) {
+                drawPath(historyCtx, previousDrawing, 'rgba(128, 128, 128, 0.2)', 1.5);
+            }
+        }
+
+        function drawPath(context, pathPoints, color, lineWidth) {
+            if (pathPoints.length < 2) return;
+            
+            context.strokeStyle = color;
+            context.lineWidth = lineWidth;
+            context.lineCap = 'round';
+            context.lineJoin = 'round';
+            
+            context.beginPath();
+            context.moveTo(pathPoints[0].x, pathPoints[0].y);
+            for (let i = 1; i < pathPoints.length; i++) {
+                context.lineTo(pathPoints[i].x, pathPoints[i].y);
+            }
+            context.stroke();
+        }
+
+        function startDrawing(e) {
+            if (hasDrawn) {
+                saveCurrentDrawing();
+                resetForNewDrawing();
+            }
+            
+            isDrawing = true;
+            points = [];
+            const point = getMousePos(e);
+            points.push(point);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawingIndicator.classList.add('active');
+            instructionText.style.opacity = '0.3';
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const point = getMousePos(e);
+            points.push(point);
+            
+            drawingIndicator.style.left = point.x + 'px';
+            drawingIndicator.style.top = point.y + 'px';
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+            
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.stroke();
+        }
+
+        function endDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            hasDrawn = true;
+            drawingIndicator.classList.remove('active');
+            
+            if (points.length > 10) {
+                calculateScore();
+            } else {
+                reset();
+            }
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+            return {
+                x: x - rect.left,
+                y: y - rect.top
+            };
+        }
+
+        function calculateScore() {
+            if (points.length < 4) return;
+            
+            const boundingBox = getBoundingBox(points);
+            const width = boundingBox.maxX - boundingBox.minX;
+            const height = boundingBox.maxY - boundingBox.minY;
+            
+            const aspectRatio = Math.min(width, height) / Math.max(width, height);
+            const aspectScore = aspectRatio * 100;
+            
+            const corners = findCorners(points);
+            const cornerScore = calculateCornerScore(corners);
+            
+            const straightnessScore = calculateStraightnessScore(points, corners);
+            
+            const closureScore = calculateClosureScore(points);
+            
+            const finalScore = (aspectScore * 0.3 + cornerScore * 0.3 + straightnessScore * 0.25 + closureScore * 0.15);
+            
+            displayScore(finalScore);
+            showPerfectSquare(boundingBox);
+            
+            attempts++;
+            totalScore += finalScore;
+            if (finalScore > bestScore) {
+                bestScore = finalScore;
+            }
+            
+            localStorage.setItem('squareAttempts', attempts.toString());
+            localStorage.setItem('squareBestScore', bestScore.toString());
+            localStorage.setItem('squareTotalScore', totalScore.toString());
+            
+            updateStats();
+            stats.classList.add('show');
+        }
+
+        function getBoundingBox(points) {
+            let minX = Infinity, minY = Infinity;
+            let maxX = -Infinity, maxY = -Infinity;
+            
+            points.forEach(p => {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            });
+            
+            return { minX, minY, maxX, maxY };
+        }
+
+        function findCorners(points) {
+            if (points.length < 4) return [];
+            
+            const corners = [];
+            const threshold = 30;
+            
+            for (let i = 1; i < points.length - 1; i++) {
+                const p1 = points[i - 1];
+                const p2 = points[i];
+                const p3 = points[i + 1];
+                
+                const angle = calculateAngle(p1, p2, p3);
+                
+                if (Math.abs(angle - 90) < threshold) {
+                    corners.push(i);
+                    i += 5;
+                }
+            }
+            
+            return corners.slice(0, 4);
+        }
+
+        function calculateAngle(p1, p2, p3) {
+            const v1 = { x: p1.x - p2.x, y: p1.y - p2.y };
+            const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+            
+            const angle = Math.atan2(v2.y, v2.x) - Math.atan2(v1.y, v1.x);
+            return Math.abs(angle * 180 / Math.PI);
+        }
+
+        function calculateCornerScore(corners) {
+            const idealCorners = 4;
+            const diff = Math.abs(corners.length - idealCorners);
+            return Math.max(0, 100 - diff * 25);
+        }
+
+        function calculateStraightnessScore(points, corners) {
+            if (corners.length < 2) return 0;
+            
+            let totalDeviation = 0;
+            let segments = 0;
+            
+            for (let i = 0; i < corners.length; i++) {
+                const start = corners[i];
+                const end = corners[(i + 1) % corners.length] || points.length - 1;
+                
+                if (start < points.length && end < points.length) {
+                    const deviation = calculateLineDeviation(points.slice(start, end));
+                    totalDeviation += deviation;
+                    segments++;
+                }
+            }
+            
+            const avgDeviation = segments > 0 ? totalDeviation / segments : 100;
+            return Math.max(0, 100 - avgDeviation * 10);
+        }
+
+        function calculateLineDeviation(segment) {
+            if (segment.length < 2) return 0;
+            
+            const start = segment[0];
+            const end = segment[segment.length - 1];
+            
+            let totalDist = 0;
+            segment.forEach(point => {
+                const dist = pointToLineDistance(point, start, end);
+                totalDist += dist;
+            });
+            
+            return totalDist / segment.length;
+        }
+
+        function pointToLineDistance(point, lineStart, lineEnd) {
+            const A = point.x - lineStart.x;
+            const B = point.y - lineStart.y;
+            const C = lineEnd.x - lineStart.x;
+            const D = lineEnd.y - lineStart.y;
+            
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            const param = lenSq !== 0 ? dot / lenSq : -1;
+            
+            let xx, yy;
+            
+            if (param < 0) {
+                xx = lineStart.x;
+                yy = lineStart.y;
+            } else if (param > 1) {
+                xx = lineEnd.x;
+                yy = lineEnd.y;
+            } else {
+                xx = lineStart.x + param * C;
+                yy = lineStart.y + param * D;
+            }
+            
+            const dx = point.x - xx;
+            const dy = point.y - yy;
+            
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function calculateClosureScore(points) {
+            if (points.length < 2) return 0;
+            
+            const first = points[0];
+            const last = points[points.length - 1];
+            const distance = Math.sqrt(Math.pow(last.x - first.x, 2) + Math.pow(last.y - first.y, 2));
+            
+            const maxDistance = 50;
+            return Math.max(0, 100 - (distance / maxDistance) * 100);
+        }
+
+        function displayScore(score) {
+            percentage.textContent = score.toFixed(2) + '%';
+            percentage.classList.add('show');
+            
+            if (score >= 95) {
+                percentage.classList.add('perfect');
+                message.textContent = 'PERFECT!';
+            } else if (score >= 80) {
+                percentage.classList.add('good');
+                message.textContent = 'Great job!';
+            } else if (score >= 60) {
+                percentage.classList.add('good');
+                message.textContent = 'Good attempt';
+            } else {
+                percentage.classList.add('bad');
+                message.textContent = 'Keep practicing';
+            }
+            
+            message.classList.add('show');
+            tryAgainBtn.classList.add('show');
+            instructionText.style.display = 'none';
+        }
+
+        function showPerfectSquare(box) {
+            const centerX = (box.minX + box.maxX) / 2;
+            const centerY = (box.minY + box.maxY) / 2;
+            const size = Math.min(box.maxX - box.minX, box.maxY - box.minY);
+            
+            perfectSquare.setAttribute('x', centerX - size/2);
+            perfectSquare.setAttribute('y', centerY - size/2);
+            perfectSquare.setAttribute('width', size);
+            perfectSquare.setAttribute('height', size);
+            perfectSquare.classList.add('show');
+        }
+
+        function resetForNewDrawing() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points = [];
+            hasDrawn = false;
+            percentage.classList.remove('show', 'perfect', 'good', 'bad');
+            message.classList.remove('show');
+            tryAgainBtn.classList.remove('show');
+            perfectSquare.classList.remove('show');
+            instructionText.style.display = 'block';
+            instructionText.style.opacity = '0.6';
+        }
+
+        function reset() {
+            veryOldDrawing = null;
+            previousDrawing = null;
+            historyCtx.clearRect(0, 0, historyCanvas.width, historyCanvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points = [];
+            hasDrawn = false;
+            percentage.classList.remove('show', 'perfect', 'good', 'bad');
+            message.classList.remove('show');
+            tryAgainBtn.classList.remove('show');
+            perfectSquare.classList.remove('show');
+            instructionText.style.display = 'block';
+            instructionText.style.opacity = '0.6';
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', endDrawing);
+        canvas.addEventListener('mouseleave', endDrawing);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDrawing(e.touches[0]);
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            draw(e.touches[0]);
+        });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            endDrawing();
+        });
+
+        tryAgainBtn.addEventListener('click', reset);
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDrawing) {
+                drawingIndicator.style.left = e.clientX + 'px';
+                drawingIndicator.style.top = e.clientY + 'px';
+            }
+        });
+    </script>
+</body>
+</html>
